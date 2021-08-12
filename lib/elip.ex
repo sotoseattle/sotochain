@@ -1,4 +1,7 @@
 defmodule Elip do
+  import Bitwise
+  alias Fasto
+
   @moduledoc """
   A point in an eliptic curve
   """
@@ -114,10 +117,8 @@ defmodule Elip do
     end
   end
 
-  def dot(ep, n), do: doto(ep, n, ep)
-  def dot(n, ep), do: doto(ep, n, ep)
-  defp doto(%Elip{}, 1, acc), do: acc
-  defp doto(ep, n, acc), do: doto(ep, n - 1, Elip.add(acc, ep))
+  def dot(%Elip{} = ep, n), do: Fasto.doto(ep, n)
+  def dot(n, %Elip{} = ep), do: Fasto.doto(ep, n)
 
   # Private utility functions
 
@@ -134,7 +135,7 @@ defmodule Elip do
     end
   end
 
-  defp infinite_point(a, b), do: %Elip{x: nil, y: nil, a: a, b: b}
+  def infinite_point(a, b), do: %Elip{x: nil, y: nil, a: a, b: b}
 
   def tipo(%Fe{}, %Fe{}, %Fe{}, %Fe{}), do: :fe
 
