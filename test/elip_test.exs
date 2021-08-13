@@ -49,6 +49,30 @@ defmodule ElipTest do
     assert Elip.dot(p1, 20) == Elip.new(Fe.new(47, prime), Fe.new(152, prime), a, b)
   end
 
+  test "in the real deal" do
+    {gx, ""} =
+      "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+      |> Integer.parse(16)
+
+    {gy, ""} =
+      "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
+      |> Integer.parse(16)
+
+    p = Integer.pow(2, 256) - Integer.pow(2, 32) - 977
+
+    x = Fe.new(gx, p)
+    y = Fe.new(gy, p)
+    a = Fe.new(0, p)
+    b = Fe.new(7, p)
+
+    {n, ""} =
+      "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
+      |> Integer.parse(16)
+
+    assert g = Elip.new(x, y, a, b)
+    assert Elip.dot(g, n) == Elip.infinite_point(a, b)
+  end
+
   defp map_to_fe({x, y}, prime), do: {Fe.new(x, prime), Fe.new(y, prime)}
   defp map_to_ep({x, y}, a, b), do: Elip.new(x, y, a, b)
 end

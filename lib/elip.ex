@@ -79,9 +79,16 @@ defmodule Elip do
         Elip.new(x3, y3, a, b)
 
       :fe ->
-        slope = Fe.expf(x, 2) |> Fe.dotf(3) |> Fe.addf(a) |> Fe.divf(Fe.dotf(2, y))
-        x3 = Fe.expf(slope, 2) |> Fe.subf(Fe.dotf(2, x))
-        y3 = Fe.subf(x, x3) |> Fe.prodf(slope) |> Fe.subf(y)
+        k = x.k
+        s1 = (Fasto.powo(x.n, 2, k) * 3 + a.n) |> Integer.mod(k)
+        s2 = Fasto.powo(2 * y.n, k - 2, k)
+        slope = (s1 * s2) |> Integer.mod(k)
+
+        xo = (Integer.pow(slope, 2) - 2 * x.n) |> Integer.mod(k)
+        yo = ((x.n - xo) * slope - y.n) |> Integer.mod(k)
+
+        x3 = Fe.new(xo, k)
+        y3 = Fe.new(yo, k)
 
         Elip.new(x3, y3, a, b)
 
@@ -106,9 +113,16 @@ defmodule Elip do
         Elip.new(x3, y3, a, b)
 
       {:fe, :fe} ->
-        slope = Fe.subf(y2, y1) |> Fe.divf(Fe.subf(x2, x1))
-        x3 = Fe.expf(slope, 2) |> Fe.subf(x1) |> Fe.subf(x2)
-        y3 = Fe.subf(x1, x3) |> Fe.prodf(slope) |> Fe.subf(y1)
+        k = x1.k
+        s1 = y2.n - y1.n
+        s2 = Fasto.powo(x2.n - x1.n, k - 2, k)
+        slope = (s1 * s2) |> Integer.mod(k)
+
+        xo = (Integer.pow(slope, 2) - x1.n - x2.n) |> Integer.mod(k)
+        yo = ((x1.n - xo) * slope - y1.n) |> Integer.mod(k)
+
+        x3 = Fe.new(xo, k)
+        y3 = Fe.new(yo, k)
 
         Elip.new(x3, y3, a, b)
 
@@ -149,4 +163,21 @@ defmodule Elip do
   def tipo(_, _, _, _), do: :error
 
   defp modo(floato, integro), do: Integer.mod(floato, integro)
+
+  def chocho() do
+    {x, ""} =
+      "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798" |> Integer.parse(16)
+
+    {y, ""} =
+      "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8" |> Integer.parse(16)
+
+    k = Integer.pow(2, 256) - Integer.pow(2, 32) - 977
+
+    gx = Fe.new(x, k)
+    gy = Fe.new(y, k)
+    a = Fe.new(0, k)
+    b = Fe.new(7, k)
+
+    Elip.new(gx, gy, a, b)
+  end
 end

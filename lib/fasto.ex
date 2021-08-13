@@ -3,28 +3,39 @@ defmodule Fasto do
 
   @moduledoc """
   Interesting algorithms that scale up to big numbers
+  The Elop addition and pow operations are very expensive, 
+  so we use a binary expansion algorithm to perform the operation 
+  in ~log2(scalar).
   """
 
   @doc """
   Dot product of eliptic curve points projected into finite fields
-  The addition operation is very expensive, so we use a binary expansion
-  algorithm to perform the operation in ~log2(scalar).
+  We start with 0 (infinity) and add the eliptic point through
+  binary expansion.
   """
   def doto(%Elip{a: a, b: b} = ep, scalar) do
-    recurro(scalar, ep, Elip.infinite_point(a, b))
+    recurro(scalar, ep, Elip.infinite_point(a, b), &Elip.add(&1, &2))
   end
 
-  defp recurro(0, _, result), do: result
+  @doc """
+  Exponentiation of big n. We start at 1 and multiply through binary expansion.
+  """
+  def powo(x, y, k) do
+    recurro(y, x, 1, &Integer.mod(&1 * &2, k))
+  end
 
-  defp recurro(scalar, current, result) do
-    result = addo(rightmost_bit(scalar), result, current)
-    current = Elip.add(current, current)
+  defp recurro(0, _, acc, _fx), do: acc
 
-    recurro(scalar >>> 1, current, result)
+  defp recurro(scalar, current, acc, fx) do
+    acc = puncho(rightmost_bit(scalar), acc, current, fx)
+
+    current = fx.(current, current)
+
+    recurro(scalar >>> 1, current, acc, fx)
   end
 
   defp rightmost_bit(int), do: int |> Integer.digits(2) |> List.last()
 
-  defp addo(1, a, b), do: Elip.add(a, b)
-  defp addo(0, a, _), do: a
+  defp puncho(1, a, b, fx), do: fx.(a, b)
+  defp puncho(0, a, _, _funciono), do: a
 end

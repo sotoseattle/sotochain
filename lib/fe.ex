@@ -10,7 +10,7 @@ defmodule Fe do
   def new(_, _), do: :error
 
   @doc "Negative of a field element"
-  def negf(%Fe{n: x, k: p}), do: %Fe{n: Integer.mod(-x, p), k: p}
+  def negf(%Fe{n: x, k: p} = feo), do: %{feo | n: Integer.mod(-x, p)}
 
   @doc "Equality among field elements is defined for all attributes"
   def equals(fea, feo), do: fea == feo
@@ -19,12 +19,12 @@ defmodule Fe do
   def ne(fea, feo), do: not Fe.equals(fea, feo)
 
   @doc "Addition of field elements"
-  def addf(%Fe{n: x, k: p}, %Fe{n: y, k: p}),
-    do: %Fe{n: (x + y) |> Integer.mod(p), k: p}
+  def addf(%Fe{n: x, k: p} = feo, %Fe{n: y, k: p}),
+    do: %{feo | n: (x + y) |> Integer.mod(p)}
 
   @doc " Subtracttion of field elements "
-  def subf(%Fe{n: x, k: p}, %Fe{n: y, k: p}) do
-    %Fe{n: Integer.mod(x - y, p), k: p}
+  def subf(%Fe{n: x, k: p} = feo, %Fe{n: y, k: p}) do
+    %{feo | n: Integer.mod(x - y, p)}
   end
 
   @doc "Multiplication of field elements"
@@ -38,15 +38,15 @@ defmodule Fe do
 
   @doc "Exponentiation of field element"
   def expf(feo, y) when y >= 0 do
-    %{feo | n: Integer.pow(feo.n, y) |> Integer.mod(feo.k)}
+    %{feo | n: Fasto.powo(feo.n, y, feo.k)}
   end
 
-  def expf(feo, y) when y < 0 do
-    %{feo | n: Integer.pow(feo.n, Integer.mod(y, feo.k - 1)) |> Integer.mod(feo.k)}
+  def expf(%Fe{n: n, k: k} = feo, y) when y < 0 do
+    %{feo | n: Fasto.powo(n, Integer.mod(y, k - 1), k)}
   end
 
   @doc "Division of field elements"
-  def divf(%Fe{n: x, k: p}, %Fe{n: y, k: p}) do
-    %Fe{n: (x * Integer.pow(y, p - 2)) |> Integer.mod(p), k: p}
+  def divf(%Fe{n: x, k: k} = feo, %Fe{n: y, k: k}) do
+    %{feo | n: (x * Fasto.powo(y, k - 2, k)) |> Integer.mod(k)}
   end
 end

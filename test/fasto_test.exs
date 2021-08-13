@@ -1,7 +1,7 @@
 defmodule FastoTest do
   use ExUnit.Case
 
-  test "equality of field elements" do
+  test "scalar product on log2(n) steps" do
     k = 223
     x = Fe.new(47, k)
     y = Fe.new(71, k)
