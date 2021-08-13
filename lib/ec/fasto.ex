@@ -1,11 +1,11 @@
-defmodule Fasto do
+defmodule Ec.Fasto do
   import Bitwise
+  alias Ec.Point
 
   @moduledoc """
-  Interesting algorithms that scale up to big numbers
-  The Elop addition and pow operations are very expensive, 
-  so we use a binary expansion algorithm to perform the operation 
-  in ~log2(scalar).
+  Algorithms to scale up certain operations for big numbers.
+  The point addition with fifis, and pow of huge numbers are very expensive, 
+  so we use binary expansion algorithm to perform in ~log2(scalar).
   """
 
   @doc """
@@ -13,8 +13,8 @@ defmodule Fasto do
   We start with 0 (infinity) and add the eliptic point through
   binary expansion.
   """
-  def doto(%Elip{a: a, b: b} = ep, scalar) do
-    recurro(scalar, ep, Elip.infinite_point(a, b), &Elip.add(&1, &2))
+  def doto(%Point{a: a, b: b} = ep, scalar) do
+    recurro(scalar, ep, Point.infinite_point(a, b), &Point.add(&1, &2))
   end
 
   @doc """
