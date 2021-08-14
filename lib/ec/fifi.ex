@@ -44,4 +44,18 @@ defmodule Ec.Fifi do
   def divf(%Fifi{n: x, k: k} = feo, %Fifi{n: y, k: k}) do
     %{feo | n: (x * Fasto.powo(y, k - 2, k)) |> Integer.mod(k)}
   end
+
+  defimpl Inspect, for: Fifi do
+    def inspect(fi, _opts) do
+      """
+      Finite Field Element:
+        Number: #{fi.n}
+        Prime: #{fi.k}
+      """
+    end
+  end
+
+  defimpl String.Chars, for: Fifi do
+    def to_string(fi), do: "Fifi: {n: #{fi.n}, prime: #{fi.k}}"
+  end
 end

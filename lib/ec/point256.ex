@@ -1,7 +1,6 @@
 defmodule Ec.Point256 do
   alias Ec.Fifi
   alias Ec.Point
-  alias Ec.Fasto
 
   @moduledoc "Point256 in eliptic curve projected unto finite field"
 
@@ -24,9 +23,6 @@ defmodule Ec.Point256 do
 
   defstruct x: nil, y: nil, a: nil, b: nil
 
-  def fi_256(n) when is_integer(n),
-    do: Fifi.new(n, @k_spc256k1)
-
   def new(x, y) when is_binary(x) and is_binary(y),
     do: new(hex_int(x), hex_int(y))
 
@@ -42,24 +38,13 @@ defmodule Ec.Point256 do
   def new(%Fifi{} = x, %Fifi{} = y),
     do: Point.new(x, y, fi_256(@a_spc256k1), fi_256(@b_spc256k1))
 
-  def dot(point, n) when is_integer(n),
-    do: Point.dot(point, Integer.mod(n, @n_spc256k1))
-
-  def dot(n, point) when is_integer(n),
-    do: Point.dot(point, Integer.mod(n, @n_spc256k1))
+  defp fi_256(n) when is_integer(n), do: Fifi.new(n, @k_spc256k1)
 
   def infinite_point(),
     do: Point.new(nil, nil, fi_256(@a_spc256k1), fi_256(@b_spc256k1))
 
-  def is_verified(p_key: public_key, hash: z, r: r, s: s) do
-    s_inv = Fasto.powo(s, @n_spc256k1 - 2, @n_spc256k1)
-    u = (z * s_inv) |> Integer.mod(@n_spc256k1)
-    v = (r * s_inv) |> Integer.mod(@n_spc256k1)
-
-    big_R = Point.dot(u, @g_spc256k1) |> Point.add(Point.dot(v, public_key))
-
-    big_R.x.n == r
-  end
-
   def hex_int(hex), do: hex |> Integer.parse(16) |> elem(0)
+
+  def spc256k1_g(), do: @g_spc256k1
+  def spc256k1_n(), do: @n_spc256k1
 end

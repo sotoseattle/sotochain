@@ -96,4 +96,30 @@ defmodule Ec.Point do
   end
 
   def infinite_point(a, b), do: %Point{x: nil, y: nil, a: a, b: b}
+
+  defimpl Inspect, for: Point do
+    def inspect(p, _opts) do
+      """
+      Point coordinates on Eliptic Curve:
+        x: #{p.x.n}
+        y: #{p.y.n}
+      Curve coefficients:
+        a: #{p.a.n}
+        b: #{p.b.n}
+      Finite Field:
+        k: #{p.x.k}
+      """
+    end
+  end
+
+  defimpl String.Chars, for: Point do
+    def to_string(p) do
+      "PoEC: {#{peek(p.x.n)}, #{peek(p.y.n)}} on EC (#{p.a.n}, #{p.b.n}) with prime: #{peek(p.x.k)}"
+    end
+
+    def peek(chocho) when chocho > 1_000_000 do
+      str = "#{chocho}"
+      String.slice(str, 0, 3) <> ".." <> String.slice(str, -2, 2)
+    end
+  end
 end
