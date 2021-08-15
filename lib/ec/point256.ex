@@ -43,27 +43,27 @@ defmodule Ec.Point256 do
   def spc256k1_n(), do: @n_spc256k1
 
   @doc "Serialization SEC format in compressed and uncompressed format"
-  def sec(point, compressed \\ true)
+  def serialize(point, compressed \\ true)
 
-  def sec(%Point{x: x, y: y}, true) do
+  def serialize(%Point{x: x, y: y}, true) do
     case Integer.mod(y.n, 2) do
       0 -> "02#{int_2_hex_big(x.n)}"
       _ -> "03#{int_2_hex_big(x.n)}"
     end
   end
 
-  def sec(%Point{x: x, y: y}, false),
+  def serialize(%Point{x: x, y: y}, false),
     do: "04#{int_2_hex_big(x.n)}#{int_2_hex_big(y.n)}"
 
   defp int_2_hex_big(i),
     do: i |> :binary.encode_unsigned(:big) |> :binary.encode_hex()
 
-  def parse("04" <> psec) do
+  def deserialize("04" <> psec) do
     {x, y} = String.split_at(psec, 64)
     new(x, y)
   end
 
-  def parse(psec) do
+  def deserialize(psec) do
     {tipo, x} = String.split_at(psec, 2)
     x = Integer.parse(x, 16) |> elem(0)
 

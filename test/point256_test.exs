@@ -24,7 +24,7 @@ defmodule Point256Test do
     sec =
       5_000
       |> Point.dot(Point256.spc256k1_g())
-      |> Point256.sec(false)
+      |> Point256.serialize(false)
       |> String.downcase()
 
     assert sec ==
@@ -33,7 +33,7 @@ defmodule Point256Test do
     sec =
       Integer.pow(2018, 5)
       |> Point.dot(Point256.spc256k1_g())
-      |> Point256.sec(false)
+      |> Point256.serialize(false)
       |> String.downcase()
 
     assert sec ==
@@ -44,7 +44,7 @@ defmodule Point256Test do
       |> Integer.parse(16)
       |> elem(0)
       |> Point.dot(Point256.spc256k1_g())
-      |> Point256.sec(false)
+      |> Point256.serialize(false)
       |> String.downcase()
 
     assert sec ==
@@ -55,7 +55,7 @@ defmodule Point256Test do
     sec =
       5_001
       |> Point.dot(Point256.spc256k1_g())
-      |> Point256.sec()
+      |> Point256.serialize()
       |> String.downcase()
 
     assert sec == "0357a4f368868a8a6d572991e484e664810ff14c05c0fa023275251151fe0e53d1"
@@ -63,7 +63,7 @@ defmodule Point256Test do
     sec =
       Integer.pow(2019, 5)
       |> Point.dot(Point256.spc256k1_g())
-      |> Point256.sec(true)
+      |> Point256.serialize(true)
       |> String.downcase()
 
     assert sec == "02933ec2d2b111b92737ec12f1c5d20f3233a0ad21cd8b36d0bca7a0cfa5cb8701"
@@ -73,7 +73,7 @@ defmodule Point256Test do
       |> Integer.parse(16)
       |> elem(0)
       |> Point.dot(Point256.spc256k1_g())
-      |> Point256.sec(true)
+      |> Point256.serialize(true)
       |> String.downcase()
 
     assert sec == "0296be5b1292f6c856b3c5654e886fc13511462059089cdf9c479623bfcbe77690"

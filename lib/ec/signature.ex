@@ -31,12 +31,22 @@ defmodule Ec.Signature do
     k = :binary.copy(<<0>>, 32)
 
     k =
-      :crypto.mac(:hmac, :sha256, k, <<v::binary, 0, wallet.private_key::integer, xoxo::binary>>)
+      :crypto.mac(
+        :hmac,
+        :sha256,
+        k,
+        <<v::binary, 0, wallet.private_key::big-size(256), xoxo::binary>>
+      )
 
     v = :crypto.mac(:hmac, :sha256, k, v)
 
     k =
-      :crypto.mac(:hmac, :sha256, k, <<v::binary, 1, wallet.private_key::integer, xoxo::binary>>)
+      :crypto.mac(
+        :hmac,
+        :sha256,
+        k,
+        <<v::binary, 1, wallet.private_key::big-size(256), xoxo::binary>>
+      )
 
     v = :crypto.mac(:hmac, :sha256, k, v)
 
@@ -63,4 +73,20 @@ defmodule Ec.Signature do
       end
     end)
   end
+
+  def serialize(signature) do
+    bin = der_int(signature.r) <> der_int(signature.s)
+
+    "30" <> Base.encode16(<<byte_size(bin)>> <> bin)
+  end
+
+  defp der_int(int) do
+    bin = int |> Integer.to_string(16) |> Base.decode16!()
+    <<first>> <> _rest = bin
+
+    <<2>> <> der_bin(bin, first) <> bin
+  end
+
+  defp der_bin(bin, first) when first <= 80, do: <<byte_size(bin)>>
+  defp der_bin(bin, _first), do: <<byte_size(bin) + 1>> <> <<0>>
 end
