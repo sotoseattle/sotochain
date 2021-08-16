@@ -1,5 +1,5 @@
 defmodule Ec.Point256 do
-  alias Utilities
+  alias Util
   alias Ec.Fifi
   alias Ec.Point
 
@@ -29,7 +29,7 @@ defmodule Ec.Point256 do
   specific big prime number.
   """
   def new(x, y) when is_binary(x) and is_binary(y) do
-    new(Utilities.hex_2_int(x), Utilities.hex_2_int(y))
+    new(Util.hex_2_int(x), Util.hex_2_int(y))
   end
 
   def new(x, y) when is_integer(x) and is_integer(y) do
@@ -85,7 +85,7 @@ defmodule Ec.Point256 do
 
   def deserialize(serial_p) do
     {tipo, x} = String.split_at(serial_p, 2)
-    x = Utilities.hex_2_int(x)
+    x = Util.hex_2_int(x)
 
     wip =
       fi_256(x)
@@ -109,7 +109,7 @@ defmodule Ec.Point256 do
   def hash160(point, compressed \\ true) do
     point
     |> serialize(compressed)
-    |> Utilities.hash160()
+    |> Util.hash160()
   end
 
   @doc """
@@ -126,7 +126,7 @@ defmodule Ec.Point256 do
     >>
 
     <<bino::binary, checksum(bino)::binary>>
-    |> Utilities.encode_base58()
+    |> Util.encode_base58()
   end
 
   def checksum(b) do

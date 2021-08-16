@@ -1,7 +1,7 @@
 defmodule Ec.Point do
   alias Ec.Fifi
-  alias Ec.Fasto
   alias Ec.Point
+  alias Util
 
   @moduledoc "Point in eliptic curve projected unto finite field"
 
@@ -51,8 +51,8 @@ defmodule Ec.Point do
   # adding the same point twice => tangent
   def add(%Point{x: x, y: y, a: a, b: b} = p1, p1) do
     k = x.k
-    s1 = (Fasto.powo(x.n, 2, k) * 3 + a.n) |> Integer.mod(k)
-    s2 = Fasto.powo(2 * y.n, k - 2, k)
+    s1 = (Util.powo(x.n, 2, k) * 3 + a.n) |> Integer.mod(k)
+    s2 = Util.powo(2 * y.n, k - 2, k)
     slope = (s1 * s2) |> Integer.mod(k)
 
     xo = (Integer.pow(slope, 2) - 2 * x.n) |> Integer.mod(k)
@@ -73,7 +73,7 @@ defmodule Ec.Point do
   def add(%Point{x: x1, y: y1, a: a, b: b}, %Point{x: x2, y: y2, a: a, b: b}) do
     k = x1.k
     s1 = y2.n - y1.n
-    s2 = Fasto.powo(x2.n - x1.n, k - 2, k)
+    s2 = Util.powo(x2.n - x1.n, k - 2, k)
     slope = (s1 * s2) |> Integer.mod(k)
 
     xo = (Integer.pow(slope, 2) - x1.n - x2.n) |> Integer.mod(k)
@@ -85,8 +85,8 @@ defmodule Ec.Point do
     Point.new(x3, y3, a, b)
   end
 
-  def dot(%Point{} = ep, n), do: Fasto.doto(ep, n)
-  def dot(n, %Point{} = ep), do: Fasto.doto(ep, n)
+  def dot(%Point{} = ep, n), do: Util.doto(ep, n)
+  def dot(n, %Point{} = ep), do: Util.doto(ep, n)
 
   # Private utility functions
 

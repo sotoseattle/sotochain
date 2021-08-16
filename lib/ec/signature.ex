@@ -1,12 +1,12 @@
 defmodule Ec.Signature do
   alias Ec.Point
-  alias Ec.Fasto
   alias Ec.Signature
+  alias Util
 
   defstruct r: nil, s: nil, hash: "", key: nil
 
   def verify(sign, g, n) do
-    s_inv = Fasto.powo(sign.s, n - 2, n)
+    s_inv = Util.powo(sign.s, n - 2, n)
     u = (sign.hash * s_inv) |> Integer.mod(n)
     v = (sign.r * s_inv) |> Integer.mod(n)
 
@@ -59,7 +59,7 @@ defmodule Ec.Signature do
           r = Point.dot(t, wallet.g).x.n
 
           s =
-            (Fasto.powo(t, wallet.n - 2, wallet.n) * (hash + r * wallet.private_key))
+            (Util.powo(t, wallet.n - 2, wallet.n) * (hash + r * wallet.private_key))
             |> Integer.mod(wallet.n)
 
           if r == 0 or s == 0 or s > wallet.n / 2,

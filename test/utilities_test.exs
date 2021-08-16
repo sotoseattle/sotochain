@@ -1,4 +1,4 @@
-defmodule UtilitiesTest do
+defmodule UtilTest do
   use ExUnit.Case
 
   test "encode in base 58" do
@@ -12,15 +12,15 @@ defmodule UtilitiesTest do
 
     d = "000000997a838a3d" |> :binary.decode_hex()
 
-    assert Utilities.encode_base58(<<a::big-size(256)>>) ==
+    assert Util.encode_base58(<<a::big-size(256)>>) ==
              "9MA8fRQrT4u8Zj8ZRd6MAiiyaxb2Y1CMpvVkHQu5hVM6"
 
-    assert Utilities.encode_base58(b) ==
+    assert Util.encode_base58(b) ==
              "4fE3H2E6XMp4SsxtwinF7w9a34ooUrwWe4WsW1458Pd"
 
-    assert Utilities.encode_base58(<<c::big-size(256)>>) ==
+    assert Util.encode_base58(<<c::big-size(256)>>) ==
              "EQJsjkd6JaGwxrjEhfeqPenqHwrBmPQZjJGNSCHBkcF7"
 
-    assert Utilities.encode_base58(d) == "111JKJxfpQ"
+    assert Util.encode_base58(d) == "111JKJxfpQ"
   end
 end

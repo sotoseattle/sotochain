@@ -2,7 +2,7 @@ defmodule PointTest do
   use ExUnit.Case
   alias Ec.Fifi
   alias Ec.Point
-  alias Ec.Fasto
+  alias Util
 
   doctest Ec.Point
 
@@ -51,11 +51,11 @@ defmodule PointTest do
 
     ep = Point.new(x, y, a, b)
 
-    assert Fasto.doto(ep, 1) == ep
-    assert Fasto.doto(ep, 2) == Point.new(Fifi.new(36, k), Fifi.new(111, k), a, b)
-    assert Fasto.doto(ep, 3) == Point.new(Fifi.new(15, k), Fifi.new(137, k), a, b)
-    assert Fasto.doto(ep, 20) == Point.new(Fifi.new(47, k), Fifi.new(152, k), a, b)
-    assert Fasto.doto(ep, 21) == Point.infinite_point(a, b)
+    assert Util.doto(ep, 1) == ep
+    assert Util.doto(ep, 2) == Point.new(Fifi.new(36, k), Fifi.new(111, k), a, b)
+    assert Util.doto(ep, 3) == Point.new(Fifi.new(15, k), Fifi.new(137, k), a, b)
+    assert Util.doto(ep, 20) == Point.new(Fifi.new(47, k), Fifi.new(152, k), a, b)
+    assert Util.doto(ep, 21) == Point.infinite_point(a, b)
   end
 
   test "in the real deal" do

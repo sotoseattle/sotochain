@@ -2,7 +2,7 @@ defmodule Ec.Fifi do
   @moduledoc "A finite field element"
 
   alias Ec.Fifi
-  alias Ec.Fasto
+  alias Util
 
   defstruct n: nil, k: nil
 
@@ -33,16 +33,16 @@ defmodule Ec.Fifi do
 
   @doc "Exponentiation of finite field element"
   def expf(feo, y) when y >= 0 do
-    %{feo | n: Fasto.powo(feo.n, y, feo.k)}
+    %{feo | n: Util.powo(feo.n, y, feo.k)}
   end
 
   def expf(%Fifi{n: n, k: k} = feo, y) when y < 0 do
-    %{feo | n: Fasto.powo(n, Integer.mod(y, k - 1), k)}
+    %{feo | n: Util.powo(n, Integer.mod(y, k - 1), k)}
   end
 
   def sqrtf(%Fifi{n: n, k: k} = feo) do
     if Integer.mod(k, 4) == 3 do
-      %{feo | n: Fasto.powo(n, Integer.floor_div(k + 1, 4), k)}
+      %{feo | n: Util.powo(n, Integer.floor_div(k + 1, 4), k)}
     else
       {:error, "sqrt of fifi... computer says no"}
     end
@@ -50,7 +50,7 @@ defmodule Ec.Fifi do
 
   @doc "Division of finite field elements"
   def divf(%Fifi{n: x, k: k} = feo, %Fifi{n: y, k: k}) do
-    %{feo | n: (x * Fasto.powo(y, k - 2, k)) |> Integer.mod(k)}
+    %{feo | n: (x * Util.powo(y, k - 2, k)) |> Integer.mod(k)}
   end
 
   defimpl Inspect, for: Fifi do
