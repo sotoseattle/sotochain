@@ -74,6 +74,12 @@ defmodule Ec.Signature do
     end)
   end
 
+  @doc """
+  Serialization with DER standard. We serialize r and s.
+  Start with a header of (30) then the total size (in hex)
+  then for each (r and s), a marker (02) followed by its size (in hex) and
+  maybe a (00) if the first byte is over 80, and the hex of the r/s.
+  """
   def serialize(signature) do
     bin = der_int(signature.r) <> der_int(signature.s)
 

@@ -25,6 +25,7 @@ defmodule Point256Test do
       5_000
       |> Point.dot(Point256.spc256k1_g())
       |> Point256.serialize(false)
+      |> :binary.encode_hex()
       |> String.downcase()
 
     assert sec ==
@@ -34,6 +35,7 @@ defmodule Point256Test do
       Integer.pow(2018, 5)
       |> Point.dot(Point256.spc256k1_g())
       |> Point256.serialize(false)
+      |> :binary.encode_hex()
       |> String.downcase()
 
     assert sec ==
@@ -45,6 +47,7 @@ defmodule Point256Test do
       |> elem(0)
       |> Point.dot(Point256.spc256k1_g())
       |> Point256.serialize(false)
+      |> :binary.encode_hex()
       |> String.downcase()
 
     assert sec ==
@@ -56,6 +59,7 @@ defmodule Point256Test do
       5_001
       |> Point.dot(Point256.spc256k1_g())
       |> Point256.serialize()
+      |> :binary.encode_hex()
       |> String.downcase()
 
     assert sec == "0357a4f368868a8a6d572991e484e664810ff14c05c0fa023275251151fe0e53d1"
@@ -64,6 +68,7 @@ defmodule Point256Test do
       Integer.pow(2019, 5)
       |> Point.dot(Point256.spc256k1_g())
       |> Point256.serialize(true)
+      |> :binary.encode_hex()
       |> String.downcase()
 
     assert sec == "02933ec2d2b111b92737ec12f1c5d20f3233a0ad21cd8b36d0bca7a0cfa5cb8701"
@@ -74,8 +79,28 @@ defmodule Point256Test do
       |> elem(0)
       |> Point.dot(Point256.spc256k1_g())
       |> Point256.serialize(true)
+      |> :binary.encode_hex()
       |> String.downcase()
 
     assert sec == "0296be5b1292f6c856b3c5654e886fc13511462059089cdf9c479623bfcbe77690"
+  end
+
+  test "addresses" do
+    key = Point.dot(5002, Point256.spc256k1_g())
+    assert Point256.address(key, false, true) == "mmTPbXQFxboEtNRkwfh6K51jvdtHLxGeMA"
+
+    key =
+      Integer.pow(2020, 5)
+      |> Point.dot(Point256.spc256k1_g())
+
+    assert Point256.address(key, true, true) == "mopVkxp8UhXqRYbCYJsbeE1h1fiF64jcoH"
+
+    key =
+      "12345deadbeef"
+      |> Integer.parse(16)
+      |> elem(0)
+      |> Point.dot(Point256.spc256k1_g())
+
+    assert Point256.address(key, true, false) == "1F1Pn2y6pDb68E5nYJJeba4TLg2U7B6KF1"
   end
 end
