@@ -115,27 +115,18 @@ defmodule Ec.Point256 do
   @doc """
   An address is a reduction of a point through serialization and hashing.
   The address has:
-    - the type of network (main: (6F), testnet: (00))
-    - the hash of the serialized point
-    - a checksum with 4 bytes of a doubled hash
+  - the type of network (main: (6F), testnet: (00))
+  - the hash of the serialized point
+  - a checksum with 4 bytes of a doubled hash
   """
-  def address(point, compressed \\ true, testnet \\ false) do
-    bino = <<
-      net_prefix(testnet)::binary,
-      hash160(point, compressed)::binary
-    >>
-
-    <<bino::binary, checksum(bino)::binary>>
+  def address(point, compressed \\ true, net \\ :main) do
+    point
+    |> hash160(compressed)
+    |> add_prefix(net)
+    |> Util.add_checksum()
     |> Util.encode_base58()
   end
 
-  def checksum(b) do
-    b = :crypto.hash(:sha256, b)
-    b = :crypto.hash(:sha256, b)
-    <<cho::binary-size(4), _rest::binary>> = b
-    cho
-  end
-
-  defp net_prefix(true), do: <<111::integer>>
-  defp net_prefix(_), do: <<0::integer>>
+  defp add_prefix(bin, :test), do: <<111::integer, bin::binary>>
+  defp add_prefix(bin, :main), do: <<0::integer, bin::binary>>
 end

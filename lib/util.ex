@@ -72,6 +72,17 @@ defmodule Util do
     :crypto.hash(:ripemd160, :crypto.hash(:sha256, message))
   end
 
+  def add_checksum(bin) do
+    <<bin::binary, checksum(bin)::binary>>
+  end
+
+  def checksum(b) do
+    b = :crypto.hash(:sha256, b)
+    b = :crypto.hash(:sha256, b)
+    <<cho::binary-size(4), _rest::binary>> = b
+    cho
+  end
+
   def int_2_hex_big(i) do
     i |> :binary.encode_unsigned(:big) |> :binary.encode_hex()
   end
@@ -79,4 +90,6 @@ defmodule Util do
   def hex_2_int(hex) do
     hex |> Integer.parse(16) |> elem(0)
   end
+
+  def int_2_bin(num), do: <<num::big-size(256)>>
 end

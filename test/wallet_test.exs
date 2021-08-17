@@ -58,4 +58,29 @@ defmodule WalletTest do
 
     assert {:ok, "signature verified", sign} == Wallet.verify(sign)
   end
+
+  test "serialization of private key with WIF" do
+    key =
+      5003
+      |> Wallet.new()
+      |> Map.get(:private_key)
+
+    assert Wallet.serial_private(key, :test, :compr) ==
+             "cMahea7zqjxrtgAbB7LSGbcQUr1uX1ojuat9jZodMN8rFTv2sfUK"
+
+    key = Integer.pow(2021, 5)
+
+    assert Wallet.serial_private(key, :test, false) ==
+             "91avARGdfge8E4tZfYLoxeJ5sGBdNJQH4kvjpWAxgzczjbCwxic"
+
+    key =
+      "54321deadbeef"
+      |> Integer.parse(16)
+      |> elem(0)
+      |> Wallet.new()
+      |> Map.get(:private_key)
+
+    assert Wallet.serial_private(key, :main, :compr) ==
+             "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgiuQJv1h8Ytr2S53a"
+  end
 end
