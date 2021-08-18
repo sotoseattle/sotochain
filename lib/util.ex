@@ -92,4 +92,35 @@ defmodule Util do
   end
 
   def int_2_bin(num), do: <<num::big-size(256)>>
+
+  def hex_2_litt(str) do
+    str |> :binary.decode_hex() |> :binary.decode_unsigned(:little)
+  end
+
+  @doc """
+  "FD" means the next 2 bytes are the number
+  "FE" means the next 4 bytes are the number
+  "FF" means the next 8 bytes are the number
+  """
+  def int_2_varint(n) when n < 253,
+    do: Integer.to_string(n, 16)
+
+  def int_2_varint(n) when n < 65536,
+    do: <<253, n::16-little>> |> Base.encode16()
+
+  def int_2_varint(n) when n < 4_294_967_296,
+    do: <<254, n::32-little>> |> Base.encode16()
+
+  def int_2_varint(n) when n < 18_446_744_073_709_551_615,
+    do: <<255, n::64-little>> |> Base.encode16()
+
+  def int_2_varint(n),
+    do: {:error, "Wrong input, probably too large? n=#{n}"}
+
+  # def parse_varint(hex_str), do: extract_varint(:binary.decode_hex(hex_str))
+
+  def parse_varint(<<253, n::16-little, rest::binary>>), do: {n, rest}
+  def parse_varint(<<254, n::32-little, rest::binary>>), do: {n, rest}
+  def parse_varint(<<255, n::64-little, rest::binary>>), do: {n, rest}
+  def parse_varint(<<n, rest::binary>>), do: {n, rest}
 end

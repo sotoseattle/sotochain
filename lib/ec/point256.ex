@@ -119,9 +119,9 @@ defmodule Ec.Point256 do
   - the hash of the serialized point
   - a checksum with 4 bytes of a doubled hash
   """
-  def address(point, compressed \\ true, net \\ :main) do
+  def address(point, compressed \\ :compr, net \\ :main) do
     point
-    |> hash160(compressed)
+    |> hash160(compressed == :compr)
     |> add_prefix(net)
     |> Util.add_checksum()
     |> Util.encode_base58()

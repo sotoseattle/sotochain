@@ -23,4 +23,22 @@ defmodule UtilTest do
 
     assert Util.encode_base58(d) == "111JKJxfpQ"
   end
+
+  test "little endian" do
+    assert Util.hex_2_litt("01000000") == 1
+  end
+
+  test "varint" do
+    assert Util.int_2_varint(100) == "64"
+    assert Util.int_2_varint(255) == "FDFF00"
+    assert Util.int_2_varint(555) == "FD2B02"
+    assert Util.int_2_varint(70015) == "FE7F110100"
+    assert Util.int_2_varint(18_005_558_675_309) == "FF6DC7ED3E60100000"
+
+    assert Util.parse_varint(:binary.decode_hex("64")) == {100, ""}
+    assert Util.parse_varint(:binary.decode_hex("FDFF00")) == {255, ""}
+    assert Util.parse_varint(:binary.decode_hex("FD2B02")) == {555, ""}
+    assert Util.parse_varint(:binary.decode_hex("FE7F110100")) == {70015, ""}
+    assert Util.parse_varint(:binary.decode_hex("FF6DC7ED3E60100000")) == {18_005_558_675_309, ""}
+  end
 end

@@ -65,12 +65,12 @@ defmodule WalletTest do
       |> Wallet.new()
       |> Map.get(:private_key)
 
-    assert Wallet.serial_private(key, :test, :compr) ==
+    assert Wallet.serial_private(key, :compr, :test) ==
              "cMahea7zqjxrtgAbB7LSGbcQUr1uX1ojuat9jZodMN8rFTv2sfUK"
 
     key = Integer.pow(2021, 5)
 
-    assert Wallet.serial_private(key, :test, false) ==
+    assert Wallet.serial_private(key, false, :test) ==
              "91avARGdfge8E4tZfYLoxeJ5sGBdNJQH4kvjpWAxgzczjbCwxic"
 
     key =
@@ -80,7 +80,7 @@ defmodule WalletTest do
       |> Wallet.new()
       |> Map.get(:private_key)
 
-    assert Wallet.serial_private(key, :main, :compr) ==
+    assert Wallet.serial_private(key, :compr, :main) ==
              "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgiuQJv1h8Ytr2S53a"
   end
 end

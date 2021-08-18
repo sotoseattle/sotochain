@@ -87,13 +87,13 @@ defmodule Point256Test do
 
   test "addresses" do
     key = Point.dot(5002, Point256.spc256k1_g())
-    assert Point256.address(key, false, :test) == "mmTPbXQFxboEtNRkwfh6K51jvdtHLxGeMA"
+    assert Point256.address(key, "whatever_falsy", :test) == "mmTPbXQFxboEtNRkwfh6K51jvdtHLxGeMA"
 
     key =
       Integer.pow(2020, 5)
       |> Point.dot(Point256.spc256k1_g())
 
-    assert Point256.address(key, true, :test) == "mopVkxp8UhXqRYbCYJsbeE1h1fiF64jcoH"
+    assert Point256.address(key, :compr, :test) == "mopVkxp8UhXqRYbCYJsbeE1h1fiF64jcoH"
 
     key =
       "12345deadbeef"
@@ -101,6 +101,6 @@ defmodule Point256Test do
       |> elem(0)
       |> Point.dot(Point256.spc256k1_g())
 
-    assert Point256.address(key, true, :main) == "1F1Pn2y6pDb68E5nYJJeba4TLg2U7B6KF1"
+    assert Point256.address(key, :compr, :main) == "1F1Pn2y6pDb68E5nYJJeba4TLg2U7B6KF1"
   end
 end

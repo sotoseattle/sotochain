@@ -28,17 +28,22 @@ defmodule Wallet do
   def verify(signature), do: Signature.verify(signature, @g, @n)
 
   def hasho(str) do
-    :crypto.hash(:sha256, str) |> Base.encode16() |> Integer.parse(16) |> elem(0)
+    :crypto.hash(:sha256, str) |> Base.encode16() |> Util.hex_2_int()
   end
 
   @doc "Serialization of private key according to WIF"
-  def serial_private(private_key, net \\ :main, sec \\ :compr) do
+  def serial_private(private_key, sec \\ :compr, net \\ :main) do
     private_key
     |> Util.int_2_bin()
     |> add_prefix(net)
     |> add_suffix(sec)
     |> Util.add_checksum()
     |> Util.encode_base58()
+  end
+
+  @doc "Obtain a bitcoin address based on public key"
+  def address(%Wallet{} = wallet, compr \\ :compr, net \\ :main) do
+    Point256.address(wallet.public_key, compr, net)
   end
 
   defp add_prefix(bin, :main), do: <<128::integer, bin::binary>>
