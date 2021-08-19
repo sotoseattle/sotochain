@@ -26,6 +26,8 @@ defmodule UtilTest do
 
   test "little endian" do
     assert Util.hex_2_litt("01000000") == 1
+    assert Util.int_2_litt_hex(2, 4) == "02000000"
+    assert Util.int_2_litt_hex(200, 4) == "C8000000"
   end
 
   test "varint" do

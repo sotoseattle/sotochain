@@ -117,7 +117,8 @@ defmodule Util do
   def int_2_varint(n),
     do: {:error, "Wrong input, probably too large? n=#{n}"}
 
-  # def parse_varint(hex_str), do: extract_varint(:binary.decode_hex(hex_str))
+  def int_2_litt_hex(n, 4), do: <<n::32-little>> |> :binary.encode_hex()
+  def int_2_litt_hex(n, 8), do: <<n::64-little>> |> :binary.encode_hex()
 
   def parse_varint(<<253, n::16-little, rest::binary>>), do: {n, rest}
   def parse_varint(<<254, n::32-little, rest::binary>>), do: {n, rest}

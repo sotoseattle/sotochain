@@ -24,6 +24,7 @@ defmodule TxTest do
       6244948a87988ac005a6202000000001976a9143c82d7df364eb6c75be8c80df2b3eda8db
       57397088ac46430600
       """
+      |> String.upcase()
       |> String.replace(~r/[\n|\s]+/, "")
 
     t = Transaction.new(tx1)
@@ -41,5 +42,7 @@ defmodule TxTest do
     amounts = t.outputs |> Enum.map(fn x -> x.amount end)
     assert 1_000_273 in amounts
     assert 40_000_000 in amounts
+
+    assert Ledger.Tx.serialize(t) == tx1
   end
 end
