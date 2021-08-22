@@ -5,54 +5,56 @@ defmodule Ec.Point256 do
 
   @moduledoc "Point256 in eliptic curve projected unto finite field"
 
-  @k_spc256k1 Integer.pow(2, 256) - Integer.pow(2, 32) - 977
-  @a_spc256k1 0
-  @b_spc256k1 7
+  @k_spc256k1 115_792_089_237_316_195_423_570_985_008_687_907_853_269_984_665_640_564_039_457_584_007_908_834_671_663
   @n_spc256k1 115_792_089_237_316_195_423_570_985_008_687_907_852_837_564_279_074_904_382_605_163_141_518_161_494_337
-  @g_spc256k1 Point.new(
-                Fifi.new(
-                  55_066_263_022_277_343_669_578_718_895_168_534_326_250_603_453_777_594_175_500_187_360_389_116_729_240,
-                  @k_spc256k1
-                ),
-                Fifi.new(
-                  32_670_510_020_758_816_978_083_085_130_507_043_184_471_273_380_659_243_275_938_904_335_757_337_482_424,
-                  @k_spc256k1
-                ),
-                Fifi.new(@a_spc256k1, @k_spc256k1),
-                Fifi.new(@b_spc256k1, @k_spc256k1)
-              )
 
-  defstruct x: nil, y: nil, a: nil, b: nil
+  @g_spc256k1 %Point{
+    x: %Fifi{
+      n:
+        55_066_263_022_277_343_669_578_718_895_168_534_326_250_603_453_777_594_175_500_187_360_389_116_729_240,
+      k: @k_spc256k1
+    },
+    y: %Fifi{
+      n:
+        32_670_510_020_758_816_978_083_085_130_507_043_184_471_273_380_659_243_275_938_904_335_757_337_482_424,
+      k: @k_spc256k1
+    },
+    a: %Fifi{n: 0, k: @k_spc256k1},
+    b: %Fifi{n: 7, k: @k_spc256k1}
+  }
 
   @doc """
   A point on the specific curve SPC256K1 projected onto a finite field with an
   specific big prime number.
   """
-  def new(x, y) when is_binary(x) and is_binary(y) do
-    new(Util.hex_2_int(x), Util.hex_2_int(y))
-  end
-
-  def new(x, y) when is_integer(x) and is_integer(y) do
-    Point.new(
-      fi_256(x),
-      fi_256(y),
-      @g_spc256k1.a,
-      @g_spc256k1.b
-    )
-  end
-
+  @spec new(Fifi.t(), Fifi.t()) :: Point.t() | {:error, String.t()}
   def new(%Fifi{} = x, %Fifi{} = y) do
     Point.new(x, y, @g_spc256k1.a, @g_spc256k1.b)
   end
 
+  @spec new(integer, integer) :: Point.t() | {:error, String.t()}
+  def new(x, y) when is_integer(x) and is_integer(y) do
+    Point.new(fi_256(x), fi_256(y), @g_spc256k1.a, @g_spc256k1.b)
+  end
+
+  @spec new(String.t(), String.t()) :: Point.t() | {:error, String.t()}
+  def new(x, y) when is_binary(x) and is_binary(y) do
+    new(Util.hex_2_int(x), Util.hex_2_int(y))
+  end
+
+  def new(nil, nil), do: infinite_point()
+
+  def new(_x, _y), do: {:error, "Unrecognized coordinates (x, y)"}
+
+  @spec fi_256(integer) :: Fifi.t()
   defp fi_256(n) when is_integer(n) do
     Fifi.new(n, @k_spc256k1)
   end
 
-  def infinite_point(),
-    do: Point.new(nil, nil, @g_spc256k1.a, @g_spc256k1.b)
+  def infinite_point(), do: %Point{x: nil, y: nil, a: @g_spc256k1.a, b: @g_spc256k1.b}
 
   def spc256k1_g(), do: @g_spc256k1
+
   def spc256k1_n(), do: @n_spc256k1
 
   @doc """
@@ -62,6 +64,7 @@ defmodule Ec.Point256 do
       because if we have x, we know that y can only be one of two values, 
       above or below the abscissa line
   """
+  @spec serialize(Point.t(), boolean) :: String.t()
   def serialize(point, compressed \\ true)
 
   def serialize(%Point{x: x, y: y}, true) do
@@ -69,21 +72,24 @@ defmodule Ec.Point256 do
       0 -> <<2::integer, x.n::big-size(256)>>
       _ -> <<3::integer, x.n::big-size(256)>>
     end
+    |> :binary.encode_hex()
   end
 
   def serialize(%Point{x: x, y: y}, false) do
     <<4::integer, x.n::big-size(256), y.n::big-size(256)>>
+    |> :binary.encode_hex()
   end
 
   @doc """
   Rebuild a point on SPC256K1 from its serialized form.
   """
-  def deserialize("04" <> serial_p) do
+  @spec parse(String.t()) :: Point.t() | {:error, String.t()}
+  def parse("04" <> serial_p) do
     {x, y} = String.split_at(serial_p, 64)
     new(x, y)
   end
 
-  def deserialize(serial_p) do
+  def parse(serial_p) do
     {tipo, x} = String.split_at(serial_p, 2)
     x = Util.hex_2_int(x)
 
@@ -106,9 +112,11 @@ defmodule Ec.Point256 do
   @doc """
   Consecutive double hashing (sha256 and ripemd160) of a serialized point
   """
+  @spec hash160(Point.t(), boolean) :: String.t()
   def hash160(point, compressed \\ true) do
     point
     |> serialize(compressed)
+    |> :binary.decode_hex()
     |> Util.hash160()
   end
 
@@ -119,6 +127,7 @@ defmodule Ec.Point256 do
   - the hash of the serialized point
   - a checksum with 4 bytes of a doubled hash
   """
+  @spec address(Point.t(), atom(), atom()) :: String.t()
   def address(point, compressed \\ :compr, net \\ :main) do
     point
     |> hash160(compressed == :compr)

@@ -11,10 +11,31 @@ defmodule Ledger.Tx do
             net: :main,
             meta: nil
 
-  def id(tx) do
-    :crypto.hash(:sha256, tx) |> :binary.encode_hex()
-  end
+  @type t(version, inputs, outputs, locktime, net, meta) :: %Tx{
+          version: version,
+          inputs: inputs,
+          outputs: outputs,
+          locktime: locktime,
+          net: net,
+          meta: meta
+        }
+  @type t :: %Tx{
+          version: integer,
+          inputs: list(TxIn.t()),
+          outputs: list(TxOut.t()),
+          locktime: integer,
+          net: atom,
+          meta: binary
+        }
 
+  # def id(tx) do
+  #   :crypto.hash(:sha256, tx) |> :binary.encode_hex()
+  # end
+
+  @doc """
+  Given a hex string deserialize and rebuild the transaction
+  """
+  @spec parse(String.t()) :: Tx.t()
   def parse(tx_hex) do
     %Tx{}
     |> Map.put(:meta, :binary.decode_hex(tx_hex))
@@ -26,6 +47,7 @@ defmodule Ledger.Tx do
     |> verify_count()
   end
 
+  @spec serialize(Tx.t()) :: String.t()
   def serialize(tx) do
     ins = Enum.reduce(tx.inputs, "", fn x, acc -> acc <> Ledger.TxIn.serialize(x) end)
     ous = Enum.reduce(tx.outputs, "", fn x, acc -> acc <> Ledger.TxOut.serialize(x) end)
@@ -40,11 +62,11 @@ defmodule Ledger.Tx do
       Util.int_2_litt_hex(tx.locktime, 4)
   end
 
-  def extract_version(%{meta: <<version::32-little, rest::binary>>} = tx) do
+  defp extract_version(%{meta: <<version::32-little, rest::binary>>} = tx) do
     %{tx | version: version, meta: rest}
   end
 
-  def process_inputs(tx) do
+  defp process_inputs(tx) do
     {n_inputs, mess} = Util.parse_varint(tx.meta)
 
     tx
@@ -52,7 +74,7 @@ defmodule Ledger.Tx do
     |> TxIn.process_txin(n_inputs)
   end
 
-  def process_outputs(tx) do
+  defp process_outputs(tx) do
     {n_outputs, mess} = Util.parse_varint(tx.meta)
 
     tx
@@ -60,18 +82,28 @@ defmodule Ledger.Tx do
     |> TxOut.process_txout(n_outputs)
   end
 
-  def extract_locktime(%{meta: <<locktime::binary-size(4), rest::binary>>} = tx) do
+  defp extract_locktime(%{meta: <<locktime::binary-size(4), rest::binary>>} = tx) do
     %{tx | locktime: :binary.decode_unsigned(locktime, :little), meta: rest}
   end
 
-  def reverse_lists(tx) do
+  defp reverse_lists(tx) do
     tx
     |> Map.put(:inputs, Enum.reverse(tx.inputs))
     |> Map.put(:outputs, Enum.reverse(tx.outputs))
   end
 
-  def verify_count(%{meta: ""} = tx), do: tx
-  def verify_count(_), do: {:error, "transaction bytes remain unparsed"}
+  defp verify_count(%{meta: ""} = tx), do: tx
+  defp verify_count(_), do: {:error, "transaction bytes remain unparsed"}
 
-  def hash(tx), do: :crypto.hash(:sha256, serialize(tx))
+  # def hash(tx), do: :crypto.hash(:sha256, serialize(tx))
+
+  # def fetch(%TxIn{} = tx, net) do
+  #   txn = tx.prev_tx
+  #   url = fetch_url(net)
+  #   {:ok, %{body: raw}} = HTTPoison.get(url <> txn <> "/hex")
+  #   raw
+  # end
+  #
+  # defp fetch_url(:main), do: "https://blockstream.info/testnet/api/tx/"
+  # defp fetch_url(:test), do: "https://blockstream.info/testnet/api/tx/"
 end

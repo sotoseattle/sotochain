@@ -7,6 +7,9 @@ defmodule Ec.Point do
 
   defstruct x: nil, y: nil, a: nil, b: nil
 
+  @type t(x, y, a, b) :: %Point{x: x, y: y, a: a, b: b}
+  @type t :: %Point{x: %Fifi{}, y: %Fifi{}, a: %Fifi{}, b: %Fifi{}}
+
   @doc """
   A point {x, y} in an eliptic curve defined by params {a, b}
   iex> x = Fifi.new(192, 223)
@@ -21,8 +24,10 @@ defmodule Ec.Point do
   y: %Fifi{n: 105, k: 223}
   }
   """
+  @spec new(nil, nil, Fifi.t(), Fifi.t()) :: Point.t()
   def new(nil, nil, a, b), do: %Point{x: nil, y: nil, a: a, b: b}
 
+  @spec new(Fifi.t(), Fifi.t(), Fifi.t(), Fifi.t()) :: Point.t() | {:error, String.t()}
   def new(x, y, a, b) do
     if is_in_curve(x, y, a, b) do
       %Point{x: x, y: y, a: a, b: b}
@@ -42,6 +47,7 @@ defmodule Ec.Point do
   """
 
   # add p1 and ∞ => p1
+  @spec add(Point.t(), Point.t()) :: Point.t()
   def add(%Point{x: nil, y: nil, a: a, b: b}, %Point{a: a, b: b} = p2), do: p2
   def add(%Point{a: a, b: b} = p1, %Point{x: nil, y: nil, a: a, b: b}), do: p1
 
@@ -85,11 +91,15 @@ defmodule Ec.Point do
     Point.new(x3, y3, a, b)
   end
 
+  @spec dot(Point.t(), integer) :: Point.t()
   def dot(%Point{} = ep, n), do: Util.doto(ep, n)
+
+  @spec dot(integer, Point.t()) :: Point.t()
   def dot(n, %Point{} = ep), do: Util.doto(ep, n)
 
-  # Private utility functions
+  # Utility functions
 
+  @spec is_in_curve(Fifi.t(), Fifi.t(), Fifi.t(), Fifi.t()) :: boolean
   def is_in_curve(x, y, a, b) do
     Integer.pow(y.n, 2) |> Integer.mod(y.k) ==
       (Integer.pow(x.n, 3) + x.n * a.n + b.n) |> Integer.mod(x.k)
