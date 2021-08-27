@@ -97,6 +97,8 @@ defmodule Util do
     str |> :binary.decode_hex() |> :binary.decode_unsigned(:little)
   end
 
+  def hex_lit_2_big(h), do: h |> Util.hex_2_litt() |> Util.int_2_hex_big()
+
   @doc """
   "FD" means the next 2 bytes are the number
   "FE" means the next 4 bytes are the number

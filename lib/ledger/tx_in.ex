@@ -2,7 +2,7 @@ defmodule Ledger.TxIn do
   alias Util
   alias Ledger.TxIn
 
-  defstruct prev_tx: nil, prev_idx: nil, script_sig: nil, seq: nil
+  defstruct prev_tx: nil, prev_idx: nil, script_sig: nil, seq: nil, meta: nil
 
   @type t(prev_tx, prev_idx, script_sig, seq) :: %TxIn{
           prev_tx: prev_tx,

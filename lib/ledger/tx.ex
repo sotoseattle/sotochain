@@ -96,14 +96,4 @@ defmodule Ledger.Tx do
   defp verify_count(_), do: {:error, "transaction bytes remain unparsed"}
 
   # def hash(tx), do: :crypto.hash(:sha256, serialize(tx))
-
-  # def fetch(%TxIn{} = tx, net) do
-  #   txn = tx.prev_tx
-  #   url = fetch_url(net)
-  #   {:ok, %{body: raw}} = HTTPoison.get(url <> txn <> "/hex")
-  #   raw
-  # end
-  #
-  # defp fetch_url(:main), do: "https://blockstream.info/testnet/api/tx/"
-  # defp fetch_url(:test), do: "https://blockstream.info/testnet/api/tx/"
 end
