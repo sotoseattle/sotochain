@@ -3,11 +3,16 @@ defmodule Ledger.Fetch do
   alias Ledger.TxOut
   alias Ledger.Fetch
 
-  defstruct valid: nil, tx: nil, error: nil, raw: nil
+  defstruct valid: nil, tx: nil, error: nil, raw: nil, net: nil
 
-  def fetch(tx_id) do
-    tx_id
-    |> retrieve_tx_online()
+  def new(params, fo \\ %Fetch{})
+  def new([], fo), do: fo
+  def new([{k, v} | t], %Fetch{} = fo), do: new(t, Map.put(fo, k, v))
+
+  def fetch(tx_id, net \\ :test) do
+    new(valid: true)
+    |> set_network(net)
+    |> retrieve_tx_online(tx_id)
     |> parse_tx_blurb()
     |> check_unspent_utxo()
     |> retrieve_prev_outputs()
@@ -15,14 +20,18 @@ defmodule Ledger.Fetch do
     |> verify_inputs()
   end
 
+  def set_network(fo, :test), do: %{fo | net: :test}
+  def set_network(fo, :main), do: %{fo | net: :main}
+  def set_network(fo, _), do: %{fo | valid: false, error: "unrecognized network"}
+
   @doc "get the hex blur of a transaction from an online source"
-  def retrieve_tx_online(tx_hex) do
-    case HTTPoison.get("https://mempool.space/api/tx/#{tx_hex}/hex") do
-      {:ok, %{body: raw}} ->
-        %Fetch{valid: true, raw: raw}
+  def retrieve_tx_online(fo, tx_hex) do
+    case HTTPoison.get(btcurl(fo.net) <> "#{tx_hex}/hex") do
+      {:ok, %{status_code: 200, body: raw}} ->
+        %{fo | raw: raw}
 
       err ->
-        %Fetch{valid: false, error: err}
+        %{fo | valid: false, error: err}
     end
   end
 
@@ -48,16 +57,17 @@ defmodule Ledger.Fetch do
       |> Map.get(:tx)
       |> Map.get(:inputs)
       |> Enum.map(fn txin ->
-        %{txin | meta: extract_output(txin.prev_tx, txin.prev_idx)}
+        %{txin | meta: extract_output(fo.net, txin.prev_tx, txin.prev_idx)}
       end)
 
     %{fo | tx: %{fo.tx | inputs: updated_inputs}}
     |> invalidate_if_errors()
   end
 
-  def extract_output(hex, idx) do
+  def extract_output(net, hex, idx) do
     with hex <- Util.hex_lit_2_big(hex),
-         %{valid: true} = fo <- retrieve_tx_online(hex),
+         temp_fo <- new(valid: true, net: net),
+         %{valid: true} = fo <- retrieve_tx_online(temp_fo, hex),
          %{valid: true} = fo <- parse_tx_blurb(fo) do
       fo
       |> Map.get(:tx)
@@ -96,10 +106,6 @@ defmodule Ledger.Fetch do
     end
   end
 
-  def outside_query(tx) do
-    case HTTPoison.get("https://mempool.space/api/tx/#{tx}/hex") do
-      {:ok, %{body: raw}} -> {:ok, raw}
-      err -> {:error, err}
-    end
-  end
+  defp btcurl(:test), do: "https://mempool.space/testnet/api/tx/"
+  defp btcurl(:main), do: "https://mempool.space/api/tx/"
 end
