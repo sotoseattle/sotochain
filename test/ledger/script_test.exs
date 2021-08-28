@@ -48,13 +48,14 @@ defmodule ScriptTest do
       |> String.replace(~r/[\n|\s]+/, "")
       |> :binary.decode_hex()
 
-    s = Ledger.Script.generate_script_stack("6e879169a77ca787")
+    s = Ledger.Script.parse("6e879169a77ca787")
 
     assert Ledger.Script.evaluate(s, [c1, c2])
   end
 
   test "mini verification with simple math" do
     script_pubkey = "767695935687" |> Script.parse()
+
     script_sig = "52" |> Script.parse()
 
     assert Script.combine(script_sig, script_pubkey) |> Script.evaluate()

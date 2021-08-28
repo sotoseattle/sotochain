@@ -67,4 +67,11 @@ defmodule Ledger.TxIn do
       txin.script_sig <>
       txin.seq
   end
+
+  def serialize_2(txin) do
+    txin.prev_tx <>
+      Util.int_2_litt_hex(txin.prev_idx, 4) <>
+      txin.meta.script_key <>
+      txin.seq
+  end
 end

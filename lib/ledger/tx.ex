@@ -62,6 +62,22 @@ defmodule Ledger.Tx do
       Util.int_2_litt_hex(tx.locktime, 4)
   end
 
+  def serialize_2(tx) do
+    ins = Enum.reduce(tx.inputs, "", fn x, acc -> acc <> Ledger.TxIn.serialize_2(x) end)
+    ous = Enum.reduce(tx.outputs, "", fn x, acc -> acc <> Ledger.TxOut.serialize(x) end)
+    in_varint = <<length(tx.inputs)::integer>> |> :binary.encode_hex()
+    out_varint = <<length(tx.outputs)::integer>> |> :binary.encode_hex()
+
+    # the hash code SIGHASH_ALL
+    Util.int_2_litt_hex(tx.version, 4) <>
+      in_varint <>
+      ins <>
+      out_varint <>
+      ous <>
+      Util.int_2_litt_hex(tx.locktime, 4) <>
+      Util.int_2_litt_hex(1, 4)
+  end
+
   defp extract_version(%{meta: <<version::32-little, rest::binary>>} = tx) do
     %{tx | version: version, meta: rest}
   end
