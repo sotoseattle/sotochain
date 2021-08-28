@@ -77,10 +77,13 @@ defmodule Util do
   end
 
   def checksum(b) do
-    b = :crypto.hash(:sha256, b)
-    b = :crypto.hash(:sha256, b)
-    <<cho::binary-size(4), _rest::binary>> = b
+    <<cho::binary-size(4), _rest::binary>> = hash256_2x(b)
     cho
+  end
+
+  def hash256_2x(b) do
+    b = :crypto.hash(:sha256, b)
+    :crypto.hash(:sha256, b)
   end
 
   def int_2_hex_big(i) do
@@ -126,4 +129,12 @@ defmodule Util do
   def parse_varint(<<254, n::32-little, rest::binary>>), do: {n, rest}
   def parse_varint(<<255, n::64-little, rest::binary>>), do: {n, rest}
   def parse_varint(<<n, rest::binary>>), do: {n, rest}
+
+  def prepend_size(hex) do
+    hex
+    |> String.length()
+    |> Integer.floor_div(2)
+    |> Integer.to_string(16)
+    |> Kernel.<>(hex)
+  end
 end

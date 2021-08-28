@@ -12,6 +12,7 @@ defmodule Ledger.Fetch do
     |> check_unspent_utxo()
     |> retrieve_prev_outputs()
     |> check_fee()
+    |> verify_inputs()
   end
 
   @doc "get the hex blur of a transaction from an online source"
@@ -78,14 +79,20 @@ defmodule Ledger.Fetch do
   def check_fee(%{valid: false} = fo), do: fo
 
   def check_fee(fo) do
-    tx = fo.tx
-    sat_in = tx.inputs |> Enum.map(fn i -> i.meta.amount end) |> Enum.sum()
-    sat_ot = tx.outputs |> Enum.map(fn o -> o.amount end) |> Enum.sum()
-    fee = sat_in - sat_ot
+    fee = Tx.fee(fo.tx)
 
     case fee >= 0 do
       true -> %{fo | tx: %{fo.tx | meta: %{fee: fee}}}
       _ -> %{fo | valid: false, error: "insuficient fee: #{fee} sat"}
+    end
+  end
+
+  def verify_inputs(%{valid: false} = fo), do: fo
+
+  def verify_inputs(fo) do
+    case Tx.verify_inputs(fo.tx) do
+      {:ok, tx} -> %{fo | tx: tx}
+      {:error, err} -> %{fo | valid: false, error: err}
     end
   end
 

@@ -2,19 +2,23 @@ defmodule Ledger.TxIn do
   alias Util
   alias Ledger.TxIn
 
-  defstruct prev_tx: nil, prev_idx: nil, script_sig: nil, seq: nil, meta: nil
+  defstruct prev_tx: nil, prev_idx: nil, script_sig: nil, seq: nil, meta: nil, sig_hash: nil
 
-  @type t(prev_tx, prev_idx, script_sig, seq) :: %TxIn{
+  @type t(prev_tx, prev_idx, script_sig, seq, meta, sig_hash) :: %TxIn{
           prev_tx: prev_tx,
           prev_idx: prev_idx,
           script_sig: script_sig,
-          seq: seq
+          seq: seq,
+          meta: meta,
+          sig_hash: sig_hash
         }
   @type t :: %TxIn{
           prev_tx: String.t(),
           prev_idx: integer,
           script_sig: String.t(),
-          seq: String.t()
+          seq: String.t(),
+          meta: binary,
+          sig_hash: binary
         }
 
   @spec process_txin(Tx.t(), integer) :: Tx.t()
@@ -68,10 +72,18 @@ defmodule Ledger.TxIn do
       txin.seq
   end
 
-  def serialize_2(txin) do
-    txin.prev_tx <>
-      Util.int_2_litt_hex(txin.prev_idx, 4) <>
-      txin.meta.script_key <>
-      txin.seq
+  def sig_hash(txin, raw_hex) do
+    to_replace = Util.prepend_size(txin.script_sig)
+    prev_pbkey = Util.prepend_size(txin.meta.script_key)
+
+    z =
+      raw_hex
+      |> String.replace(to_replace, prev_pbkey)
+      |> Kernel.<>("01000000")
+      |> :binary.decode_hex()
+      |> Util.hash256_2x()
+      |> :binary.decode_unsigned(:big)
+
+    %{txin | sig_hash: z}
   end
 end

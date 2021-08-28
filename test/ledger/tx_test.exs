@@ -45,4 +45,122 @@ defmodule TxTest do
 
     assert Ledger.Tx.serialize(t) == tx1
   end
+
+  test "compute the signature hash of a transaction" do
+    tx =
+      "0100000001813f79011acb80925dfe69b3def355fe914bd1d96a3f5f71bf830\
+      3c6a989c7d1000000006b483045022100ed81ff192e75a3fd2304004dcadb746fa5e24c5031ccf\
+      cf21320b0277457c98f02207a986d955c6e0cb35d446a89d3f56100f4d7f67801c31967743a9c8\
+      e10615bed01210349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278\
+      afeffffff02a135ef01000000001976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88a\
+      c99c39800000000001976a9141c4bc762dd5423e332166702cb75f40df79fea1288ac19430600"
+      |> String.replace(~r/[\n|\s]+/, "")
+      |> Ledger.Tx.parse()
+
+    i =
+      tx.inputs
+      |> List.first()
+      |> Map.put(:meta, %Ledger.TxOut{
+        amount: 229_566_594,
+        script_key: "76a914a802fc56c704ce87c42d7c92eb75e7896bdc41ae88ac"
+      })
+
+    tx = %{tx | inputs: [i]}
+
+    tx = Ledger.Tx.compute_sig_hashes(tx)
+    zoo = tx.inputs |> List.first() |> Map.get(:sig_hash)
+
+    assert zoo ==
+             "27e0c5994dec7824e56dec6b2fcb342eb7cdb0d0957c2fce9882f715e85d81a6"
+             |> Util.hex_2_int()
+
+    assert Ledger.Tx.verify_inputs(tx)
+  end
+
+  test "verify real transaction from internet" do
+    tx =
+      "0100000001032e38e9c0a84c6046d687d10556dcacc41d275ec55fc00779ac88fdf357a187000000008c493046022100c352d3dd993a981beba4a63ad15c209275ca9470abfcd57da93b58e4eb5dce82022100840792bc1f456062819f15d33ee7055cf7b5ee1af1ebcc6028d9cdb1c3af7748014104f46db5e9d61a9dc27b8d64ad23e7383a4e6ca164593c2527c038c0857eb67ee8e825dca65046b82c9331586c82e0fd1f633f25f87c161bc6f8a630121df2b3d3ffffffff0200e32321000000001976a914c398efa9c392ba6013c5e04ee729755ef7f58b3288ac000fe208010000001976a914948c765a6914d43f2a7ac177da2c2f6b52de3d7c88ac00000000"
+      |> String.replace(~r/[\n|\s]+/, "")
+      |> Ledger.Tx.parse()
+
+    i =
+      tx.inputs
+      |> List.first()
+      |> Map.put(:meta, %Ledger.TxOut{
+        amount: 229_566_594,
+        script_key: "76a91471d7dd96d9edda09180fe9d57a477b5acc9cad1188ac"
+      })
+
+    tx = %{tx | inputs: [i]}
+
+    assert Ledger.Tx.verify_inputs(tx) |> elem(0) == :ok
+  end
+
+  test "verify real transaction from internet 2" do
+    tx = %Ledger.Tx{
+      inputs: [
+        %Ledger.TxIn{
+          meta: %Ledger.TxOut{
+            amount: 229_566_594,
+            script_key: "76A914FF6208DD9E764CB27E3F10C89DB0B1F7FB589CEB88AC"
+          },
+          prev_idx: 1,
+          prev_tx: "7FD64DF94CCEDD9E7F3B3A9EF072FD184F9E89DC5CF3E233D0029AC03DC6B7BC",
+          script_sig:
+            "473044022056C003F79D7C2192138D70B6627521299CEBBEC6C4BAE670DB2E41A30575EA54022042EA592881DD88311EA3855E8A7B4F7BA4443C779E5E9CA2820B702AE318C892012103E6CBFD24EC873BC7243053B40A2C1ED80D7C21C03022F235A7E21B1F6FF7DAF4",
+          seq: "FFFFFFFF"
+        }
+      ],
+      locktime: 0,
+      meta: %{fee: 10000},
+      net: :main,
+      outputs: [
+        %Ledger.TxOut{
+          amount: 42_057_450,
+          script_key: "76A9147A18ECFE673427C2A6E5A34E06F3AD7ED73C7C2C88AC"
+        },
+        %Ledger.TxOut{
+          amount: 187_499_144,
+          script_key: "76A914FF6208DD9E764CB27E3F10C89DB0B1F7FB589CEB88AC"
+        }
+      ],
+      version: 1
+    }
+
+    assert Ledger.Tx.verify_inputs(tx) |> elem(0) == :ok
+  end
+
+  test "refute a wrong transaction whose input points to a wrong prev output" do
+    tx = %Ledger.Tx{
+      inputs: [
+        %Ledger.TxIn{
+          meta: %Ledger.TxOut{
+            amount: 229_566_594,
+            script_key: "76a91471d7dd96d9edda09180fe9d57a477b5acc9cad1188ac"
+          },
+          prev_idx: 1,
+          prev_tx: "7FD64DF94CCEDD9E7F3B3A9EF072FD184F9E89DC5CF3E233D0029AC03DC6B7BC",
+          script_sig:
+            "473044022056C003F79D7C2192138D70B6627521299CEBBEC6C4BAE670DB2E41A30575EA54022042EA592881DD88311EA3855E8A7B4F7BA4443C779E5E9CA2820B702AE318C892012103E6CBFD24EC873BC7243053B40A2C1ED80D7C21C03022F235A7E21B1F6FF7DAF4",
+          seq: "FFFFFFFF"
+        }
+      ],
+      locktime: 0,
+      meta: %{fee: 10000},
+      net: :main,
+      outputs: [
+        %Ledger.TxOut{
+          amount: 42_057_450,
+          script_key: "76A9147A18ECFE673427C2A6E5A34E06F3AD7ED73C7C2C88AC"
+        },
+        %Ledger.TxOut{
+          amount: 187_499_144,
+          script_key: "76A914FF6208DD9E764CB27E3F10C89DB0B1F7FB589CEB88AC"
+        }
+      ],
+      version: 1
+    }
+
+    assert Ledger.Tx.verify_inputs(tx) |> elem(0) == :error
+  end
 end
